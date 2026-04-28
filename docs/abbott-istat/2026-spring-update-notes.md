@@ -77,5 +77,25 @@ For assistance with transitioning any of the listed components contact your loca
 
 ---
 
+## i-STAT Alinity SOM — Software Updates and Enhancements
+
+1. **Section 1.2 — New QCF code:**
+   - i-STAT Alinity Instrument was updated to include a new quality check failure code (QCF 131-01-5.1.29) to better detect underfill events when running an hs-TnI cartridge.
+
+2. **Section 3.4 (Manage and Assemble Profiles) — Manual data entry:**
+   - Data will be entered only as numbers. This setting applies only to manual entry and does not affect scanned entry.
+
+3. **Sections 3.4 (Manage and Assemble Profiles) and 3.5 (AlinIQ CWi – Customization) — Updated to include:**
+   - **Liquid QC display behavior:** The symbol `<>` is displayed with each Liquid QC test name in place of the quantitative (numeric) results when the result is first generated. After the instrument is restarted, the stored result will display in numeric format. Do not select this option if manual pass/fail determination is selected.
+   - **Operator certification date limit:** The i-STAT Alinity instrument does not support Operator certification expiration dates past **18-Jan-2038**. Ensure the Operator List sent from the LIS or HIS does not have entries with operator certification expiration dates beyond 18-Jan-2038.
+
+### POCM Impact — SOM Changes
+
+- **QCF 131-01-5.1.29** — Same code as in OSi update. Confirm POCM QC module recognizes this failure code.
+- **Operator certification 2038 limit** — POCM's LMS import and operator management must validate that certification dates sent to i-STAT Alinity devices do not exceed 18-Jan-2038. If POCM allows dates beyond this, operators could be locked out on the device.
+- **Liquid QC `<>` symbol** — POCM's QC result processing should handle the `<>` placeholder correctly if results are received before instrument restart.
+
+---
+
 *Source: i-STAT Spring 2026 GSR Review v1 — For internal use only, not for customer distribution*
 *Recorded: April 2026*
