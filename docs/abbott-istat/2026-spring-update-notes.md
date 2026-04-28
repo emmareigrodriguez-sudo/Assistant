@@ -89,6 +89,23 @@ For assistance with transitioning any of the listed components contact your loca
    - **Liquid QC display behavior:** The symbol `<>` is displayed with each Liquid QC test name in place of the quantitative (numeric) results when the result is first generated. After the instrument is restarted, the stored result will display in numeric format. Do not select this option if manual pass/fail determination is selected.
    - **Operator certification date limit:** The i-STAT Alinity instrument does not support Operator certification expiration dates past **18-Jan-2038**. Ensure the Operator List sent from the LIS or HIS does not have entries with operator certification expiration dates beyond 18-Jan-2038.
 
+### i-STAT Alinity SOM — End-of-Support Reminders
+
+**Microsoft Windows Server®**
+
+Many Abbott and partner products are compatible with and run on various operating systems and browsers. From time-to-time those systems come to the end of their useful life and are retired.
+
+- **Microsoft Windows Server® 2022** — End of 'Mainstream' Support date of **October 13, 2026**. Extended Support will still be available through **October 14, 2031**.
+- **Microsoft Windows Server® 2016** — End of 'Extended' Support date of **January 12, 2027**. This will be the final Microsoft support date for Windows Server 2016.
+
+**Action required:** Coordinate with your IT team and Data Management vendor to arrange a transition to a supported operating system prior to the end of support for your systems supporting i-STAT.
+
+**User documentation:** [https://www.globalpointofcare.abbott/ww/en/support.html](https://www.globalpointofcare.abbott/ww/en/support.html)
+
+For assistance with transitioning any of the listed components contact your local i-STAT representative.
+
+> **Note:** This End-of-Support reminder applies to both i-STAT 1 and i-STAT Alinity SOM. The same Windows Server deadlines affect all i-STAT data management systems.
+
 ### POCM Impact — SOM Changes
 
 - **QCF 131-01-5.1.29** — Same code as in OSi update. Confirm POCM QC module recognizes this failure code.
