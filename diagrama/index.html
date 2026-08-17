@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arquitectura de Comunicación CSM</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f1420;
+      --card: #161c2b;
+      --border: #2a3348;
+      --text: #e6ebf5;
+      --muted: #94a3b8;
+      --accent: #4f8cff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      padding: 28px 24px 16px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #131a29 0%, #0f1420 100%);
+    }
+    header h1 { margin: 0 0 6px; font-size: 24px; }
+    header p { margin: 0; color: var(--muted); font-size: 15px; }
+    header .ack {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 4px 12px;
+      background: #16351f;
+      color: #7ee29a;
+      border: 1px solid #2f6b41;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    main { max-width: 1400px; margin: 0 auto; padding: 20px 16px 60px; }
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px 24px;
+      margin: 18px 0;
+    }
+    section h2 {
+      margin: 0 0 4px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    section .sub { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+    .mermaid {
+      background: #fbfcfe;
+      border-radius: 10px;
+      padding: 18px;
+      overflow-x: auto;
+      text-align: center;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .tab {
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 13px;
+      user-select: none;
+    }
+    .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    footer { text-align: center; color: var(--muted); font-size: 12px; padding: 20px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Arquitectura de Comunicación CSM</h1>
+    <p>Del instrumento médico al backend — traducción, unificación de protocolo e integración hospitalaria</p>
+    <div class="ack">Comunicación bidireccional · nuestro servidor envía ACK</div>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <div class="tab active" data-tab="general">1 · Flujo general</div>
+      <div class="tab" data-tab="drivers">2 · Drivers y protocolos</div>
+      <div class="tab" data-tab="framework">3 · Framework → CSM</div>
+      <div class="tab" data-tab="servicios">4 · Commserver → CSLite</div>
+      <div class="tab" data-tab="his">5 · Integración HIS/LIS</div>
+    </div>
+
+    <section class="panel active" id="general">
+      <h2>1 · Flujo general de extremo a extremo</h2>
+      <p class="sub">Instrumento → Driver (traductor) → Framework → Protocolo único CSM → Web Server ↔ Backend → BD, e integración con sistemas externos.</p>
+      <div class="mermaid">
+flowchart LR
+    subgraph INST["🩺 Instrumentos"]
+        I1["CoaguChek"]
+        I2["Accu-Chek"]
+        I3["Otros (h232)"]
+    end
+    subgraph DRV["🔌 Drivers (traductores)"]
+        D1["Pcomunicator<br/>POCT1A"]
+        D2["HL7"]
+        D3["ASTM"]
+        D4["Propietario"]
+    end
+    subgraph FW["⚙️ Driver Framework"]
+        DDA["DDA (2024+)"]
+        HOST["HostCit1k (legacy)"]
+    end
+    CSM["📦 Protocolo único<br/>CSM"]
+    WS["🌐 Web Server"]
+    BE["🗄️ Backend (BE)"]
+    DB[("💾 Base de datos")]
+    subgraph EXT["🏥 Sistemas externos"]
+        HIS["HIS"]
+        LIS["LIS"]
+    end
+
+    INST -->|"TCP/IP<br/>red del cliente"| DRV
+    DRV --> FW
+    FW -->|"unifica"| CSM
+    CSM --> WS
+    WS <-->|"bidireccional + ACK"| BE
+    BE --> DB
+    BE <-->|"HL7 / ASTM"| EXT
+
+    classDef inst fill:#e0f2fe,stroke:#0284c7,color:#0c4a6e;
+    classDef drv fill:#fef9c3,stroke:#ca8a04,color:#713f12;
+    classDef fw fill:#ede9fe,stroke:#7c3aed,color:#4c1d95;
+    classDef core fill:#dcfce7,stroke:#16a34a,color:#14532d;
+    classDef ext fill:#ffe4e6,stroke:#e11d48,color:#881337;
+    class I1,I2,I3 inst;
+    class D1,D2,D3,D4 drv;
+    class DDA,HOST fw;
+    class CSM,WS,BE,DB core;
+    class HIS,LIS ext;
+      </div>
+    </section>
+
+    <section class="panel" id="drivers">
+      <h2>2 · El driver es un traductor</h2>
+      <p class="sub">Cada instrumento habla su propio protocolo. El driver abre el puerto, recibe, traduce y empaqueta la info para el backend.</p>
+      <div class="mermaid">
+flowchart TD
+    P{{"¿Qué protocolo<br/>usa el instrumento?"}}
+    P -->|"97% de los casos"| POCT["Pcomunicator POCT1A<br/>(driver único)"]
+    P -->|"POCT1A modificado"| HL7["Driver HL7"]
+    P -->|"POCT1A modificado"| ASTM["Driver ASTM"]
+    P -->|"protocolo de<br/>una empresa"| PROP["Driver propietario / serial<br/>(ni POCT1A, ni HL7, ni ASTM)"]
+
+    POCT --> F1["Recibe: CoaguCheck,<br/>Accucheck, h232"]
+    POCT --> F2["Envía al web server"]
+    POCT --> F3["Se comunica con la BD"]
+
+    subgraph FUNC["Funciones del driver"]
+        A1["1 · Abre puerto de<br/>cualquier instrumento"]
+        A2["2 · Recibe la comunicación"]
+        A3["3 · Traduce a formato POCM"]
+        A4["4 · Empaqueta para el BE"]
+    end
+
+    classDef q fill:#fff,stroke:#334155,color:#0f172a;
+    classDef main fill:#fef9c3,stroke:#ca8a04,color:#713f12;
+    classDef alt fill:#e0f2fe,stroke:#0284c7,color:#0c4a6e;
+    classDef prop fill:#ffe4e6,stroke:#e11d48,color:#881337;
+    classDef fn fill:#f1f5f9,stroke:#64748b,color:#0f172a;
+    class P q;
+    class POCT,F1,F2,F3 main;
+    class HL7,ASTM alt;
+    class PROP prop;
+    class A1,A2,A3,A4 fn;
+      </div>
+    </section>
+
+    <section class="panel" id="framework">
+      <h2>3 · Framework: todo se unifica en el protocolo CSM</h2>
+      <p class="sub">El framework transforma todos los protocolos en uno solo (CSM) para que el web server hable con el BE, aunque los equipos sean distintos.</p>
+      <div class="mermaid">
+flowchart LR
+    subgraph IN["Protocolos de entrada"]
+        A["POCT1A"]
+        B["HL7"]
+        C["ASTM"]
+        D["Propietario"]
+    end
+    IN --> FW["Driver Framework"]
+    FW --> DDA["DDA<br/>(desde 2024)"]
+    FW --> HOST["HostCit1k<br/>(legacy)"]
+    DDA --> CSM["Protocolo único CSM"]
+    HOST --> CSM
+    CSM --> WS["Web Server ↔ BE"]
+
+    DDA -. "No crea nada en BD<br/>hasta recibir resultado real" .- N1[" "]
+    HOST -. "Crea pruebas de test<br/>en BD al instalar" .- N2[" "]
+
+    classDef in fill:#fef9c3,stroke:#ca8a04,color:#713f12;
+    classDef fw fill:#ede9fe,stroke:#7c3aed,color:#4c1d95;
+    classDef core fill:#dcfce7,stroke:#16a34a,color:#14532d;
+    classDef note fill:none,stroke:none,color:#64748b;
+    class A,B,C,D in;
+    class FW,DDA,HOST fw;
+    class CSM,WS core;
+    class N1,N2 note;
+      </div>
+    </section>
+
+    <section class="panel" id="servicios">
+      <h2>4 · Evolución de servicios: Commserver → CSLite</h2>
+      <p class="sub">Antes un solo servicio Windows (Commserver) manejaba todos los drivers. Ahora cada instrumento tiene su servicio independiente (CSLite).</p>
+      <div class="mermaid">
+flowchart TD
+    subgraph OLD["❌ Antes: Commserver"]
+        CS["Commserver<br/>(1 servicio Windows)"]
+        CS --> od1["Driver A"]
+        CS --> od2["Driver B"]
+        CS --> od3["Driver C"]
+        note1["Para comunicar 1 driver<br/>había que iniciar TODO el Commserver"]
+    end
+
+    subgraph NEW["✅ Ahora: CSLite (CommServer Lite)"]
+        s1["CSLite · Driver A"]
+        s2["CSLite · Driver B"]
+        s3["CSLite · Driver C"]
+        note2["Un servicio por tipo de instrumento.<br/>Cada uno orquesta cuándo comunicar."]
+    end
+
+    OLD -. "evolución" .-> NEW
+
+    classDef old fill:#ffe4e6,stroke:#e11d48,color:#881337;
+    classDef new fill:#dcfce7,stroke:#16a34a,color:#14532d;
+    classDef note fill:#f8fafc,stroke:#cbd5e1,color:#475569;
+    class CS,od1,od2,od3 old;
+    class s1,s2,s3 new;
+    class note1,note2 note;
+      </div>
+    </section>
+
+    <section class="panel" id="his">
+      <h2>5 · Integración con HIS / LIS (bidireccional + ACK)</h2>
+      <p class="sub">El sistema recibe datos de paciente (ADT) y envía resultados vía HL7/ASTM. Cada mensaje se confirma con ACK.</p>
+      <div class="mermaid">
+sequenceDiagram
+    participant HIS as HIS / LIS
+    participant POCM as POCM (nuestro servidor)
+    participant INST as Instrumento
+
+    HIS->>POCM: ADT (Admisión, Descarga, Traslados) · HL7
+    Note over HIS,POCM: Datos de paciente
+    INST->>POCM: Resultado de prueba
+    POCM-->>INST: ACK (confirmación)
+    POCM->>HIS: Resultados (HL7 / ASTM)
+    HIS-->>POCM: ACK
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Diagrama generado a partir del working board · Comunicación bidireccional con ACK
+  </footer>
+
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: "default", flowchart: { curve: "basis" } });
+    const tabs = document.querySelectorAll(".tab");
+    const panels = document.querySelectorAll(".panel");
+    tabs.forEach(t => t.addEventListener("click", () => {
+      tabs.forEach(x => x.classList.remove("active"));
+      panels.forEach(p => p.classList.remove("active"));
+      t.classList.add("active");
+      document.getElementById(t.dataset.tab).classList.add("active");
+    }));
+  </script>
+</body>
+</html>

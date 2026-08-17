@@ -1,0 +1,43 @@
+flowchart LR
+    subgraph INST["Instrumentos"]
+        I1["CoaguChek"]
+        I2["Accu-Chek"]
+        I3["Otros (h232)"]
+    end
+    subgraph DRV["Drivers (traductores)"]
+        D1["Pcomunicator POCT1A"]
+        D2["HL7"]
+        D3["ASTM"]
+        D4["Propietario"]
+    end
+    subgraph FW["Driver Framework"]
+        DDA["DDA (2024+)"]
+        HOST["HostCit1k (legacy)"]
+    end
+    CSM["Protocolo unico CSM"]
+    WS["Web Server"]
+    BE["Backend (BE)"]
+    DB[("Base de datos")]
+    subgraph EXT["Sistemas externos"]
+        HIS["HIS"]
+        LIS["LIS"]
+    end
+
+    INST -->|"TCP/IP - red del cliente"| DRV
+    DRV --> FW
+    FW -->|"unifica"| CSM
+    CSM --> WS
+    WS <-->|"bidireccional + ACK"| BE
+    BE --> DB
+    BE <-->|"HL7 / ASTM"| EXT
+
+    classDef inst fill:#e0f2fe,stroke:#0284c7,color:#0c4a6e;
+    classDef drv fill:#fef9c3,stroke:#ca8a04,color:#713f12;
+    classDef fw fill:#ede9fe,stroke:#7c3aed,color:#4c1d95;
+    classDef core fill:#dcfce7,stroke:#16a34a,color:#14532d;
+    classDef ext fill:#ffe4e6,stroke:#e11d48,color:#881337;
+    class I1,I2,I3 inst;
+    class D1,D2,D3,D4 drv;
+    class DDA,HOST fw;
+    class CSM,WS,BE,DB core;
+    class HIS,LIS ext;

@@ -1,0 +1,11 @@
+sequenceDiagram
+    participant HIS as HIS / LIS
+    participant POCM as POCM (nuestro servidor)
+    participant INST as Instrumento
+
+    HIS->>POCM: ADT (Admision, Descarga, Traslados) - HL7
+    Note over HIS,POCM: Datos de paciente
+    INST->>POCM: Resultado de prueba
+    POCM-->>INST: ACK (confirmacion)
+    POCM->>HIS: Resultados (HL7 / ASTM)
+    HIS-->>POCM: ACK

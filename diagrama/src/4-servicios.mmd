@@ -1,0 +1,24 @@
+flowchart TD
+    subgraph OLD["Antes: Commserver"]
+        CS["Commserver (1 servicio Windows)"]
+        CS --> od1["Driver A"]
+        CS --> od2["Driver B"]
+        CS --> od3["Driver C"]
+        note1["Para comunicar 1 driver habia que iniciar TODO el Commserver"]
+    end
+
+    subgraph NEW["Ahora: CSLite (CommServer Lite)"]
+        s1["CSLite - Driver A"]
+        s2["CSLite - Driver B"]
+        s3["CSLite - Driver C"]
+        note2["Un servicio por tipo de instrumento. Cada uno orquesta cuando comunicar."]
+    end
+
+    OLD -. "evolucion" .-> NEW
+
+    classDef old fill:#ffe4e6,stroke:#e11d48,color:#881337;
+    classDef new fill:#dcfce7,stroke:#16a34a,color:#14532d;
+    classDef note fill:#f8fafc,stroke:#cbd5e1,color:#475569;
+    class CS,od1,od2,od3 old;
+    class s1,s2,s3 new;
+    class note1,note2 note;

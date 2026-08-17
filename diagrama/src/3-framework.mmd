@@ -1,0 +1,20 @@
+flowchart LR
+    subgraph IN["Protocolos de entrada"]
+        A["POCT1A"]
+        B["HL7"]
+        C["ASTM"]
+        D["Propietario"]
+    end
+    IN --> FW["Driver Framework"]
+    FW --> DDA["DDA (desde 2024) - No crea nada en BD hasta recibir resultado real"]
+    FW --> HOST["HostCit1k (legacy) - Crea pruebas de test en BD al instalar"]
+    DDA --> CSM["Protocolo unico CSM"]
+    HOST --> CSM
+    CSM --> WS["Web Server &lt;-&gt; BE"]
+
+    classDef in fill:#fef9c3,stroke:#ca8a04,color:#713f12;
+    classDef fw fill:#ede9fe,stroke:#7c3aed,color:#4c1d95;
+    classDef core fill:#dcfce7,stroke:#16a34a,color:#14532d;
+    class A,B,C,D in;
+    class FW,DDA,HOST fw;
+    class CSM,WS core;

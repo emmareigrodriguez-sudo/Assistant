@@ -1,0 +1,28 @@
+flowchart TD
+    P{{"Que protocolo usa el instrumento?"}}
+    P -->|"97% de los casos"| POCT["Pcomunicator POCT1A (driver unico)"]
+    P -->|"POCT1A modificado"| HL7["Driver HL7"]
+    P -->|"POCT1A modificado"| ASTM["Driver ASTM"]
+    P -->|"protocolo de una empresa"| PROP["Driver propietario / serial (ni POCT1A, ni HL7, ni ASTM)"]
+
+    POCT --> F1["Recibe: CoaguCheck, Accucheck, h232"]
+    POCT --> F2["Envia al web server"]
+    POCT --> F3["Se comunica con la BD"]
+
+    subgraph FUNC["Funciones del driver (traductor)"]
+        A1["1 - Abre puerto de cualquier instrumento"]
+        A2["2 - Recibe la comunicacion"]
+        A3["3 - Traduce a formato POCM"]
+        A4["4 - Empaqueta para el BE"]
+    end
+
+    classDef q fill:#ffffff,stroke:#334155,color:#0f172a;
+    classDef main fill:#fef9c3,stroke:#ca8a04,color:#713f12;
+    classDef alt fill:#e0f2fe,stroke:#0284c7,color:#0c4a6e;
+    classDef prop fill:#ffe4e6,stroke:#e11d48,color:#881337;
+    classDef fn fill:#f1f5f9,stroke:#64748b,color:#0f172a;
+    class P q;
+    class POCT,F1,F2,F3 main;
+    class HL7,ASTM alt;
+    class PROP prop;
+    class A1,A2,A3,A4 fn;
