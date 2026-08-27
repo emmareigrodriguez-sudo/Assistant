@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Issues in the Pending Results — QC module mockup</title>
+<style>
+  :root{
+    --error:#e5484d;      /* Error / Severe error */
+    --warning:#f5a623;    /* Warning */
+    --info:#4c9aff;       /* Information */
+    --ruleviol:#8b5cf6;   /* In-range, rule violated / abnormal */
+    --ink:#1b1f27; --muted:#5b6472; --line:#e6e9ef; --bg:#f5f7fa;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--ink);padding:32px}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+  .wrap{display:flex;gap:40px;flex-wrap:wrap;align-items:flex-start}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:28px;
+        box-shadow:0 1px 3px rgba(20,30,50,.06)}
+  .card h2{font-size:15px;margin:0 0 20px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
+
+  /* Donut */
+  .donut-box{position:relative;width:260px;height:260px}
+  .donut{width:260px;height:260px;border-radius:50%;
+    background:conic-gradient(
+      var(--error)      0deg 176.6deg,   /* 23 -> 49% */
+      var(--warning)    176.6deg 291.7deg,/* 15 -> 32% */
+      var(--info)       291.7deg 337.7deg,/* 6  -> 13% */
+      var(--ruleviol)   337.7deg 360deg   /* 3  -> 6%  */
+    );
+    -webkit-mask:radial-gradient(farthest-side,transparent 58%,#000 59%);
+            mask:radial-gradient(farthest-side,transparent 58%,#000 59%);}
+  .center{position:absolute;inset:0;display:flex;flex-direction:column;
+          align-items:center;justify-content:center;text-align:center}
+  .center .num{font-size:46px;font-weight:700;line-height:1}
+  .center .lbl{font-size:12px;color:var(--muted);margin-top:4px;max-width:130px}
+
+  /* Legend */
+  .legend{list-style:none;margin:0;padding:0;min-width:280px}
+  .legend li{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line)}
+  .legend li:last-child{border-bottom:none}
+  .dot{width:14px;height:14px;border-radius:4px;flex:0 0 auto}
+  .legend .name{font-weight:600;font-size:14px}
+  .legend .desc{font-size:12px;color:var(--muted)}
+  .legend .val{margin-left:auto;font-weight:700;font-size:16px}
+  .legend .pct{color:var(--muted);font-size:12px;margin-left:6px;font-weight:400}
+
+  .foot{margin-top:26px;font-size:12px;color:var(--muted);max-width:760px;line-height:1.6}
+  code{background:#eef1f6;padding:1px 6px;border-radius:5px;font-size:11px}
+  .tag{display:inline-block;background:#eef1f6;border:1px solid var(--line);border-radius:20px;
+       padding:3px 10px;font-size:11px;color:var(--muted);margin:2px 4px 2px 0}
+</style>
+</head>
+<body>
+  <h1>Issues in the Pending Results</h1>
+  <div class="sub">QC module · mockup for the POC Coordinator review workflow · sample data</div>
+
+  <div class="wrap">
+    <div class="card">
+      <h2>By severity</h2>
+      <div style="display:flex;gap:36px;align-items:center;flex-wrap:wrap">
+        <div class="donut-box">
+          <div class="donut"></div>
+          <div class="center">
+            <div class="num">47</div>
+            <div class="lbl">pending results with issues</div>
+          </div>
+        </div>
+        <ul class="legend">
+          <li>
+            <span class="dot" style="background:var(--error)"></span>
+            <div>
+              <div class="name">Error / Severe error</div>
+              <div class="desc">Out of range · not auto-accepted · needs review</div>
+            </div>
+            <span class="val">23<span class="pct">49%</span></span>
+          </li>
+          <li>
+            <span class="dot" style="background:var(--warning)"></span>
+            <div>
+              <div class="name">Warning</div>
+              <div class="desc">Deviation within tolerance · attention advised</div>
+            </div>
+            <span class="val">15<span class="pct">32%</span></span>
+          </li>
+          <li>
+            <span class="dot" style="background:var(--info)"></span>
+            <div>
+              <div class="name">Information</div>
+              <div class="desc">Informational flag (e.g. IAU unknown alarm)</div>
+            </div>
+            <span class="val">6<span class="pct">13%</span></span>
+          </li>
+          <li>
+            <span class="dot" style="background:var(--ruleviol)"></span>
+            <div>
+              <div class="name">Rule violated (in-range)</div>
+              <div class="desc">Within range but Westgard/RiliBÄK rule broken</div>
+            </div>
+            <span class="val">3<span class="pct">6%</span></span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Issue source</h2>
+      <ul class="legend" style="min-width:240px">
+        <li>
+          <span class="dot" style="background:#2d3748"></span>
+          <div><div class="name">System alarms</div>
+          <div class="desc">Raised by POCM (range / rules)</div></div>
+          <span class="val">30</span>
+        </li>
+        <li>
+          <span class="dot" style="background:#94a3b8"></span>
+          <div><div class="name">Instrument alarms</div>
+          <div class="desc">Flags sent by the device</div></div>
+          <span class="val">17</span>
+        </li>
+      </ul>
+      <div style="margin-top:16px">
+        <div class="tag">System · Error 18</div>
+        <div class="tag">System · Warning 9</div>
+        <div class="tag">System · Info 3</div>
+        <div class="tag">Instrument · Error 5</div>
+        <div class="tag">Instrument · Warning 6</div>
+        <div class="tag">Instrument · Info 3</div>
+        <div class="tag">Rule violated 3</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <strong>Categories are derived from POCM's existing model:</strong>
+    severities <code>Error / Warning / Information</code> (instrument-alarm-definition),
+    the <em>rule-violated in-range</em> case (NPOCO-4599), and the two alarm sources
+    <em>System</em> (NPOCO-1074) vs <em>Instrument</em> (NPOCO-979).
+    Only <em>pending / unreviewed</em> results are counted — those NOT auto-accepted because
+    an alarm has severity Error (NPOCO-864). Counts by sample ID + received date, filterable
+    by device type (NPOCO-471 / NPOCO-27647). Numbers shown are illustrative.
+  </div>
+</body>
+</html>

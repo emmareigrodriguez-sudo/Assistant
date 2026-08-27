@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DDA 2.5 · Los POCOS · PI-32026</title>
+<style>
+  :root{
+    --navy:#0b2a4a; --navy2:#12395f; --blue:#1f6fb2; --sky:#2f9fd8;
+    --ink:#0f2440; --mut:#5b6b7f; --line:#e3e9f0; --bg:#f4f7fb;
+    --green:#2fae66; --green-d:#1f8f52; --amber:#f2a63b; --amber-d:#d98a1f;
+    --red:#e15a5a; --grey:#9aa7b6; --card:#ffffff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);padding:28px 30px 34px}
+  .wrap{max-width:1120px;margin:0 auto}
+  /* header */
+  .head{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:3px solid var(--navy);padding-bottom:14px;margin-bottom:22px}
+  .title h1{font-size:24px;font-weight:700;color:var(--navy);letter-spacing:.2px}
+  .title .sub{font-size:13px;color:var(--mut);margin-top:4px}
+  .badge{background:var(--navy);color:#fff;font-size:12px;font-weight:600;padding:7px 14px;border-radius:20px;letter-spacing:.4px}
+  /* KPI cards */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(11,42,74,.05)}
+  .kpi .lbl{font-size:11.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);font-weight:600}
+  .kpi .val{font-size:30px;font-weight:700;color:var(--navy);margin-top:6px;line-height:1}
+  .kpi .val small{font-size:14px;color:var(--mut);font-weight:600}
+  .kpi .foot{font-size:11.5px;color:var(--mut);margin-top:7px}
+  .kpi.accent{background:linear-gradient(135deg,var(--navy),var(--navy2));border-color:var(--navy)}
+  .kpi.accent .lbl,.kpi.accent .foot{color:#b9d2e8}
+  .kpi.accent .val{color:#fff}
+  /* progress bar */
+  .bar{height:9px;border-radius:6px;background:#e9eef4;overflow:hidden;margin-top:10px;display:flex}
+  .bar i{display:block;height:100%}
+  .seg-done{background:var(--green)}
+  .seg-prog{background:var(--amber)}
+  .seg-todo{background:var(--grey)}
+  /* layout columns */
+  .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;box-shadow:0 1px 3px rgba(11,42,74,.05)}
+  .panel h2{font-size:14px;color:var(--navy);font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .panel h2::before{content:"";width:5px;height:16px;background:var(--blue);border-radius:3px}
+  /* velocity chart */
+  .chart{display:flex;align-items:flex-end;gap:18px;height:190px;padding:6px 4px 0;border-bottom:2px solid var(--line);margin-bottom:8px}
+  .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+  .col .stack{width:60%;max-width:52px;display:flex;flex-direction:column-reverse;border-radius:5px 5px 0 0;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  .col .stack i{display:block;width:100%}
+  .col .cap{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px}
+  .col .xlab{font-size:11px;color:var(--mut);margin-top:8px;text-align:center;font-weight:600}
+  .col .xlab span{display:block;font-size:10px;color:#9aa7b6;font-weight:500}
+  .avg-line{position:relative}
+  .legend{display:flex;gap:16px;font-size:11.5px;color:var(--mut);margin-top:12px}
+  .legend b{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  /* status donut (css conic) */
+  .donut-row{display:flex;align-items:center;gap:22px}
+  .donut{width:150px;height:150px;border-radius:50%;
+    background:conic-gradient(var(--green) 0 63.2%, var(--amber) 63.2% 86.9%, var(--grey) 86.9% 100%);
+    position:relative;flex-shrink:0}
+  .donut::after{content:"";position:absolute;inset:26px;background:var(--card);border-radius:50%}
+  .donut .mid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2}
+  .donut .mid b{font-size:26px;color:var(--navy);line-height:1}
+  .donut .mid span{font-size:10.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
+  .stat-list{flex:1}
+  .stat-list .row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px}
+  .stat-list .row:last-child{border-bottom:none}
+  .stat-list .row .k{display:flex;align-items:center;gap:8px;color:var(--ink)}
+  .stat-list .row .dot{width:10px;height:10px;border-radius:3px}
+  .stat-list .row .v{font-weight:700;color:var(--navy)}
+  .stat-list .row .v small{color:var(--mut);font-weight:500}
+  /* items table */
+  .tbl-panel{margin-top:18px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{text-align:left;color:var(--mut);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;padding:8px 10px;border-bottom:2px solid var(--line)}
+  td{padding:8px 10px;border-bottom:1px solid var(--line);color:var(--ink)}
+  tr:last-child td{border-bottom:none}
+  .key{font-family:"Consolas",monospace;font-weight:700;color:var(--blue)}
+  .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:11px}
+  .p-done{background:#e3f6ec;color:var(--green-d)}
+  .p-prog{background:#fdf0dc;color:var(--amber-d)}
+  .p-todo{background:#eef1f5;color:#6b7a8c}
+  .p-impl{background:#e6f0f9;color:var(--blue)}
+  .sp{font-weight:700;color:var(--navy)}
+  .sp.none{color:var(--red)}
+  .type{font-size:11px;color:var(--mut)}
+  .foot-note{font-size:11px;color:var(--mut);margin-top:16px;text-align:right}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="head">
+    <div class="title">
+      <h1>DDA 2.5 — Progreso del equipo Los POCOS</h1>
+      <div class="sub">Program Increment <strong>PI-32026</strong> · fixVersion <code>Device_Driver_Adapter_2.5</code> · Proyecto NPOCO</div>
+    </div>
+    <div class="badge">PI-32026 · SPRINT 6 EN CURSO</div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="kpi accent">
+      <div class="lbl">Avance por Story Points</div>
+      <div class="val">73%<small> &nbsp;40/55 SP</small></div>
+      <div class="bar"><i class="seg-done" style="width:72.7%"></i><i class="seg-prog" style="width:27.3%"></i></div>
+      <div class="foot">40 SP done · 15 SP en curso</div>
+    </div>
+    <div class="kpi">
+      <div class="lbl">Items completados</div>
+      <div class="val">12<small> / 19</small></div>
+      <div class="bar"><i class="seg-done" style="width:63.2%"></i><i class="seg-prog" style="width:15.8%"></i><i class="seg-todo" style="width:21%"></i></div>
+      <div class="foot">63% de los items en estado Done</div>
+    </div>
+    <div class="kpi">
+      <div class="lbl">En curso</div>
+      <div class="val">3<small> items</small></div>
+      <div class="bar"><i class="seg-prog" style="width:100%"></i></div>
+      <div class="foot">15 SP activos (incl. migración .NET 10)</div>
+    </div>
+    <div class="kpi">
+      <div class="lbl">Sin estimar</div>
+      <div class="val" style="color:var(--amber-d)">6<small> items</small></div>
+      <div class="bar"><i class="seg-todo" style="width:100%"></i></div>
+      <div class="foot">4 mDefects + release/doc sin SP</div>
+    </div>
+  </div>
+
+  <!-- main grid -->
+  <div class="grid">
+    <!-- velocity -->
+    <div class="panel">
+      <h2>Velocidad por sprint (SP completados)</h2>
+      <div class="chart">
+        <div class="col">
+          <div class="cap">4</div>
+          <div class="stack" style="height:19%"><i class="seg-done" style="height:100%"></i></div>
+          <div class="xlab">S1<span>4 SP</span></div>
+        </div>
+        <div class="col">
+          <div class="cap">11</div>
+          <div class="stack" style="height:52%"><i class="seg-done" style="height:100%"></i></div>
+          <div class="xlab">S2<span>11 SP</span></div>
+        </div>
+        <div class="col">
+          <div class="cap">21</div>
+          <div class="stack" style="height:100%"><i class="seg-done" style="height:100%"></i></div>
+          <div class="xlab">S3<span>21 SP · pico</span></div>
+        </div>
+        <div class="col">
+          <div class="cap" style="color:var(--red)">0</div>
+          <div class="stack" style="height:3%"><i class="seg-todo" style="height:100%"></i></div>
+          <div class="xlab">S4<span>sin cierre</span></div>
+        </div>
+        <div class="col">
+          <div class="cap">4</div>
+          <div class="stack" style="height:19%"><i class="seg-done" style="height:100%"></i></div>
+          <div class="xlab">S5<span>4 SP</span></div>
+        </div>
+        <div class="col">
+          <div class="cap" style="color:var(--amber-d)">10</div>
+          <div class="stack" style="height:48%"><i class="seg-prog" style="height:100%"></i></div>
+          <div class="xlab">S6<span>en curso</span></div>
+        </div>
+      </div>
+      <div class="legend">
+        <span><b class="seg-done"></b>SP completados</span>
+        <span><b class="seg-prog"></b>SP en curso (S6)</span>
+        <span><b class="seg-todo"></b>Sin entrega</span>
+        <span style="margin-left:auto;color:var(--navy);font-weight:600">Media entregada ≈ 8 SP/sprint</span>
+      </div>
+    </div>
+
+    <!-- status breakdown -->
+    <div class="panel">
+      <h2>Distribución de estados</h2>
+      <div class="donut-row">
+        <div class="donut">
+          <div class="mid"><b>73%</b><span>SP done</span></div>
+        </div>
+        <div class="stat-list">
+          <div class="row"><div class="k"><span class="dot seg-done"></span>Done</div><div class="v">40 SP <small>· 12 items</small></div></div>
+          <div class="row"><div class="k"><span class="dot seg-prog"></span>En curso</div><div class="v">15 SP <small>· 3 items</small></div></div>
+          <div class="row"><div class="k"><span class="dot" style="background:var(--blue)"></span>Implemented*</div><div class="v">3 items <small>· mDefects</small></div></div>
+          <div class="row"><div class="k"><span class="dot seg-todo"></span>Created (To Do)</div><div class="v">4 items <small>· 0 SP</small></div></div>
+        </div>
+      </div>
+      <div style="font-size:10.5px;color:var(--mut);margin-top:12px">*"Implemented" cuenta como Done en la categoría de Jira (dev acabado, pendiente cierre formal).</div>
+    </div>
+  </div>
+
+  <!-- items table -->
+  <div class="panel tbl-panel">
+    <h2>Detalle de items DDA 2.5 (19)</h2>
+    <table>
+      <thead><tr><th>Key</th><th>Tipo</th><th>Resumen</th><th>Estado</th><th>SP</th><th>Asignado</th></tr></thead>
+      <tbody>
+        <tr><td class="key">NPOCO-27332</td><td class="type">Task</td><td>[DEV] DDA Setup R01</td><td><span class="pill p-done">Done</span></td><td class="sp">13</td><td>Luis Acedo</td></tr>
+        <tr><td class="key">NPOCO-27329</td><td class="type">Task</td><td>[DEV] DDA REL R01 — Implementación</td><td><span class="pill p-done">Done</span></td><td class="sp">5</td><td>Dean Kavicki</td></tr>
+        <tr><td class="key">NPOCO-27590</td><td class="type">mDefect</td><td>DDA no crea QC material para material "nuevo"</td><td><span class="pill p-impl">Implemented</span></td><td class="sp">5</td><td>Luis Acedo</td></tr>
+        <tr><td class="key">NPOCO-27409</td><td class="type">Task</td><td>[QA] DDA REL.R01 Lot sync</td><td><span class="pill p-done">Done</span></td><td class="sp">4</td><td>—</td></tr>
+        <tr><td class="key">NPOCO-27405</td><td class="type">Task</td><td>[QA] DDA Setup R01 — Testing</td><td><span class="pill p-done">Done</span></td><td class="sp">3</td><td>Constanza J.</td></tr>
+        <tr><td class="key">NPOCO-27048</td><td class="type">Story</td><td>Testing — DDA concurrent connections</td><td><span class="pill p-done">Done</span></td><td class="sp">2</td><td>Constanza J.</td></tr>
+        <tr><td class="key">NPOCO-27306</td><td class="type">Task</td><td>Setup entorno testing DDA concurrent</td><td><span class="pill p-done">Done</span></td><td class="sp">2</td><td>Constanza J.</td></tr>
+        <tr><td class="key">NPOCO-27307</td><td class="type">Task</td><td>Checkpoint plan (DDA release)</td><td><span class="pill p-done">Done</span></td><td class="sp">2</td><td>Sandra Viñas</td></tr>
+        <tr><td class="key">NPOCO-27330</td><td class="type">Task</td><td>[QA] DDA REL.R01 Lot sync</td><td><span class="pill p-done">Done</span></td><td class="sp">2</td><td>Constanza J.</td></tr>
+        <tr><td class="key">NPOCO-27407</td><td class="type">Task</td><td>[QA] DDA REL.R01 Lot sync (2)</td><td><span class="pill p-done">Done</span></td><td class="sp">2</td><td>Constanza J.</td></tr>
+        <tr><td class="key">NPOCO-28087</td><td class="type">Task</td><td>Migrar DDA a .NET 10 + upgrade deps</td><td><span class="pill p-prog">In Progress</span></td><td class="sp">8</td><td>—</td></tr>
+        <tr><td class="key">NPOCO-27821</td><td class="type">Task</td><td>DDA SETUP.R01 Integration Test</td><td><span class="pill p-prog">In Progress</span></td><td class="sp">5</td><td>Andrés de Miguel</td></tr>
+        <tr><td class="key">NPOCO-27814</td><td class="type">mDefect</td><td>Degradación de rendimiento en picos cobas Pulse</td><td><span class="pill p-prog">In Progress</span></td><td class="sp">2</td><td>Emma Reig</td></tr>
+        <tr><td class="key">NPOCO-26418</td><td class="type">mDefect</td><td>DDA REL.R01 (Lot sync) no funciona</td><td><span class="pill p-impl">Implemented</span></td><td class="sp none">—</td><td>Emma Reig</td></tr>
+        <tr><td class="key">NPOCO-26859</td><td class="type">mDefect</td><td>[DDA] Setup R01 no actualiza info previa</td><td><span class="pill p-impl">Implemented</span></td><td class="sp none">—</td><td>Emma Reig</td></tr>
+        <tr><td class="key">NPOCO-27262</td><td class="type">Task</td><td>DDA 2.5.0 Release</td><td><span class="pill p-todo">Created</span></td><td class="sp none">—</td><td>—</td></tr>
+        <tr><td class="key">NPOCO-27308</td><td class="type">Task</td><td>Execution (DDA release)</td><td><span class="pill p-todo">Created</span></td><td class="sp none">—</td><td>—</td></tr>
+        <tr><td class="key">NPOCO-27455</td><td class="type">Task</td><td>Update DDA documentation</td><td><span class="pill p-todo">Created</span></td><td class="sp none">—</td><td>—</td></tr>
+        <tr><td class="key">NPOCO-28369</td><td class="type">Task</td><td>DDA performance degradation testing II</td><td><span class="pill p-todo">Created</span></td><td class="sp none">—</td><td>—</td></tr>
+      </tbody>
+    </table>
+    <div class="foot-note">Fuente: Jira NPOCO · fixVersion = Device_Driver_Adapter_2.5 · Team = Los POCOS · datos en vivo · generado 2026-08-26</div>
+  </div>
+
+</div>
+</body>
+</html>

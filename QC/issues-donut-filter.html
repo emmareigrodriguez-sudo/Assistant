@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Issues in the Pending Results — filter by source</title>
+<style>
+  :root{
+    --error:#e5484d; --warning:#f5a623; --info:#4c9aff; --ruleviol:#8b5cf6;
+    --ink:#1b1f27; --muted:#5b6472; --line:#e6e9ef; --bg:#f5f7fa; --brand:#0b5cff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--ink);padding:32px}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+
+  .filters{display:flex;gap:8px;margin-bottom:24px}
+  .filters button{border:1px solid var(--line);background:#fff;color:var(--ink);
+    padding:9px 18px;border-radius:24px;font-size:13px;font-weight:600;cursor:pointer;
+    display:flex;align-items:center;gap:8px;transition:.15s}
+  .filters button:hover{border-color:var(--brand)}
+  .filters button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .filters button .cnt{font-size:12px;opacity:.85;font-weight:400}
+  .filters button .swatch{width:10px;height:10px;border-radius:3px}
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:28px;
+        box-shadow:0 1px 3px rgba(20,30,50,.06);display:inline-block}
+  .row{display:flex;gap:44px;align-items:center;flex-wrap:wrap}
+
+  .donut-box{position:relative;width:260px;height:260px}
+  svg{transform:rotate(-90deg)}
+  .center{position:absolute;inset:0;display:flex;flex-direction:column;
+          align-items:center;justify-content:center;text-align:center;pointer-events:none}
+  .center .num{font-size:46px;font-weight:700;line-height:1}
+  .center .lbl{font-size:12px;color:var(--muted);margin-top:4px;max-width:130px}
+  .center .src{font-size:11px;color:var(--brand);font-weight:700;margin-top:8px;
+               text-transform:uppercase;letter-spacing:.04em}
+
+  .legend{list-style:none;margin:0;padding:0;min-width:300px}
+  .legend li{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px dashed var(--line)}
+  .legend li:last-child{border-bottom:none}
+  .dot{width:14px;height:14px;border-radius:4px;flex:0 0 auto}
+  .legend .name{font-weight:600;font-size:14px}
+  .legend .desc{font-size:12px;color:var(--muted)}
+  .legend .val{margin-left:auto;font-weight:700;font-size:16px}
+  .legend .pct{color:var(--muted);font-size:12px;margin-left:6px;font-weight:400}
+  .seg{transition:opacity .15s}
+  .foot{margin-top:22px;font-size:12px;color:var(--muted);max-width:760px;line-height:1.6}
+  code{background:#eef1f6;padding:1px 6px;border-radius:5px;font-size:11px}
+</style>
+</head>
+<body>
+  <h1>Issues in the Pending Results</h1>
+  <div class="sub">QC module · filter the pending issues by their source · sample data</div>
+
+  <div class="filters" id="filters">
+    <button data-src="all"        class="active"><span class="swatch" style="background:linear-gradient(90deg,#e5484d,#4c9aff)"></span>All sources <span class="cnt" id="c-all"></span></button>
+    <button data-src="system"><span class="swatch" style="background:#2d3748"></span>System alarms <span class="cnt" id="c-system"></span></button>
+    <button data-src="instrument"><span class="swatch" style="background:#94a3b8"></span>Instrument alarms <span class="cnt" id="c-instrument"></span></button>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <div class="donut-box">
+        <svg width="260" height="260" viewBox="0 0 260 260" id="donut"></svg>
+        <div class="center">
+          <div class="num" id="total">47</div>
+          <div class="lbl">pending results<br>with issues</div>
+          <div class="src" id="srcLabel">All sources</div>
+        </div>
+      </div>
+      <ul class="legend" id="legend"></ul>
+    </div>
+  </div>
+
+  <div class="foot">
+    <strong>Filter logic:</strong> issues are split by <em>source</em> —
+    <em>System alarms</em> raised by POCM (NPOCO-1074) vs <em>Instrument alarms</em> sent by the
+    device (NPOCO-979) — and by <em>severity</em> <code>Error / Warning / Information</code>
+    plus the in-range <em>rule-violated</em> case (NPOCO-4599). Only pending / unreviewed
+    results are counted (not auto-accepted, NPOCO-864). Numbers are illustrative.
+  </div>
+
+<script>
+  // severity categories per source
+  const DATA = {
+    system:     {Error:18, Warning:9, Information:3, RuleViolated:0},
+    instrument: {Error:5,  Warning:6, Information:3, RuleViolated:0},
+    ruleAll:    3   // rule-violated shown only in "all" as its own slice
+  };
+  const CATS = [
+    {key:'Error',        name:'Error / Severe error',   desc:'Out of range · not auto-accepted',        color:'#e5484d'},
+    {key:'Warning',      name:'Warning',                desc:'Deviation within tolerance',              color:'#f5a623'},
+    {key:'Information',  name:'Information',            desc:'Informational flag (e.g. IAU)',           color:'#4c9aff'},
+    {key:'RuleViolated', name:'Rule violated (in-range)',desc:'Within range but Westgard/RiliBÄK broken',color:'#8b5cf6'},
+  ];
+
+  function dataFor(src){
+    if(src==='system')     return {...DATA.system};
+    if(src==='instrument') return {...DATA.instrument};
+    // all = system + instrument + rule-violated slice
+    const o={Error:0,Warning:0,Information:0,RuleViolated:DATA.ruleAll};
+    for(const s of ['system','instrument'])
+      for(const k of ['Error','Warning','Information']) o[k]+=DATA[s][k];
+    return o;
+  }
+
+  const R=110, C=130, CIRC=2*Math.PI*R, W=42;
+  function render(src){
+    const d=dataFor(src);
+    const total=Object.values(d).reduce((a,b)=>a+b,0);
+    document.getElementById('total').textContent=total;
+    document.getElementById('srcLabel').textContent=
+      src==='all'?'All sources':(src==='system'?'System':'Instrument');
+
+    // donut ring
+    const svg=document.getElementById('donut'); svg.innerHTML='';
+    let offset=0;
+    CATS.forEach(cat=>{
+      const v=d[cat.key]||0; if(v===0) return;
+      const frac=v/total, len=frac*CIRC;
+      const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('cx',C);c.setAttribute('cy',C);c.setAttribute('r',R);
+      c.setAttribute('fill','none');c.setAttribute('stroke',cat.color);
+      c.setAttribute('stroke-width',W);
+      c.setAttribute('stroke-dasharray',`${len} ${CIRC-len}`);
+      c.setAttribute('stroke-dashoffset',-offset);
+      c.setAttribute('class','seg');
+      svg.appendChild(c); offset+=len;
+    });
+
+    // legend
+    const leg=document.getElementById('legend'); leg.innerHTML='';
+    CATS.forEach(cat=>{
+      const v=d[cat.key]||0; if(v===0) return;
+      const li=document.createElement('li');
+      li.innerHTML=`<span class="dot" style="background:${cat.color}"></span>
+        <div><div class="name">${cat.name}</div><div class="desc">${cat.desc}</div></div>
+        <span class="val">${v}<span class="pct">${(v/total*100).toFixed(0)}%</span></span>`;
+      leg.appendChild(li);
+    });
+  }
+
+  // counts on buttons
+  function counts(src){return Object.values(dataFor(src)).reduce((a,b)=>a+b,0);}
+  document.getElementById('c-all').textContent='('+counts('all')+')';
+  document.getElementById('c-system').textContent='('+counts('system')+')';
+  document.getElementById('c-instrument').textContent='('+counts('instrument')+')';
+
+  document.getElementById('filters').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    document.querySelectorAll('.filters button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); render(b.dataset.src);
+  });
+
+  render('all');
+</script>
+</body>
+</html>
